@@ -4,7 +4,7 @@
 #'
 #' @importFrom adaptivetau ssa.adaptivetau
 #' @importFrom deSolve lsoda
-#' @importFrom dplyr arrange filter is.tbl mutate select slice
+#' @importFrom dplyr arrange bind_rows filter is.tbl mutate select slice
 #' @importFrom magrittr %>%
 #' @importFrom readxl read_excel
 #' @importFrom tidyr pivot_longer
@@ -264,8 +264,8 @@ seir.n.age.classes = function(file.name, sheets.names, just.get.functions=FALSE,
     if(any(also.get.flows == "outflows"))
       silly.outflow.model= get.silly.model.chunk(model_flows, input_stuff, init.cond.numeric.vars, "outflow", "outflows.", "SlackBoxForOutflows")
 
-    model_flows = rbind(model_flows, silly.inflow.model$model, silly.outflow.model$model)
-    input_stuff = rbind(input_stuff, silly.inflow.model$init , silly.outflow.model$init )
+    model_flows = bind_rows(model_flows, silly.inflow.model$model, silly.outflow.model$model)
+    input_stuff = bind_rows(input_stuff, silly.inflow.model$init , silly.outflow.model$init )
 
     # Get init_list AGAIN.  This overwrites version created early on
     init_list <- list() # Same content as input_stuff but in a list format
@@ -555,7 +555,7 @@ seir.n.age.classes = function(file.name, sheets.names, just.get.functions=FALSE,
     if(segment < nTimeSegments)
       out = out[-nrow(out),]
     # Add outputs to the list
-    df.out = rbind(df.out,out)
+    df.out = bind_rows(df.out,out)
 
   } #end for(segment in seq(1, nTimeSegments, 1))
 
@@ -570,7 +570,7 @@ seir.n.age.classes = function(file.name, sheets.names, just.get.functions=FALSE,
     CTMC.df = c()
     for(k in CTMC.etiquettes)
     {
-      CTMC.df = rbind(CTMC.df,CTMC.list[[k]]$simu.lean)
+      CTMC.df = bind_rows(CTMC.df,CTMC.list[[k]]$simu.lean)
       CTMC.list[[k]] = CTMC.list[[k]]$simu.all
     }
     CTMC.out=list(CTMC.list=CTMC.list,CTMC.df=CTMC.df)
@@ -617,6 +617,8 @@ seir.n.age.classes = function(file.name, sheets.names, just.get.functions=FALSE,
 #'
 #' @keywords Internal
 #'
+#' @importFrom dplyr bind_rows
+#'
 #' @param model_flows a character element.
 #' @param init.cond a character element.
 #' @param init.cond.numeric.vars a character vector.
@@ -653,7 +655,7 @@ get.silly.model.chunk = function(model_flows, init.cond, init.cond.numeric.vars,
   silly_init[,init.cond.numeric.vars] = 0
   init.slack = silly_init[1,]
   init.slack$NAME = init.slack.name
-  silly_init = rbind(silly_init,init.slack)
+  silly_init = bind_rows(silly_init,init.slack)
 
   #BEGIN handle the orphans
   n.age.grp = length(init.cond.numeric.vars)
@@ -673,7 +675,7 @@ get.silly.model.chunk = function(model_flows, init.cond, init.cond.numeric.vars,
   }
   #END handle the orphans
 
-  list(init=silly_init , model = rbind(silly_model,model.inflow.orphans,model.outflow.orphans) )
+  list(init=silly_init , model = bind_rows(silly_model,model.inflow.orphans,model.outflow.orphans) )
 }
 
 
@@ -700,6 +702,7 @@ save.model.in.workbook = function(input.info.list,file_name,map.names)
 #'
 #' @export
 #'
+#' @importFrom dplyr bind_rows
 #' @importFrom lhs randomLHS
 #' @importFrom stats qunif runif
 #' @importFrom triangle qtriangle
@@ -851,7 +854,7 @@ try.various.parms.values = function(seir.object,parm.cloud.grid.specs,only.show.
     # for(parameter in names(row))
     #  summary.chunk[[paste0(parameter, operation.label)]] <- row[[parameter]]
 
-    outcomes.summary.df = rbind(outcomes.summary.df,summary.chunk)
+    outcomes.summary.df = bind_rows(outcomes.summary.df,summary.chunk)
     #print(names(outcomes.summary.df))
 
     # Add this.label and the parameter multpliers to the this.result$solution data frame
@@ -861,7 +864,7 @@ try.various.parms.values = function(seir.object,parm.cloud.grid.specs,only.show.
 
     #Update list.sweep and df.sweep
     list.sweep[[this.label]] = this.result[c("solution","input.info","input.info.verbatim")] # this.result$solution
-    df.sweep = rbind(df.sweep,this.result$solution)
+    df.sweep = bind_rows(df.sweep,this.result$solution)
   }
   rownames(outcomes.summary.df) = c()
   outcomes.summary.df$etiquette = c() # drop etiquette.  Not really useful to keep.
@@ -928,6 +931,8 @@ assess.parameter.importance = function (don,X,Y,method)
 #'
 #' @export
 #'
+#' @importFrom dplyr bind_rows
+#'
 #' @param solution1 a box/compartment model object.
 #' @param solution2 a box/compartment model object.
 #' @param age.suffix2 a character element.
@@ -966,7 +971,7 @@ compare.models = function(solution1,solution2,age.suffix2="",ignore.vars=NULL,ti
       bad.counts = sum( (abs(actual.diff)>tolerance$absolute & abs(rel.diff) > tolerance$relative) )
       # this.box.diff = c(range(rel.diff[time.subset] ) , range(actual.diff[time.subset]),bad.counts)
       this.box.diff = c(max(rel.diff ) , max(actual.diff),bad.counts)
-      mat.diff = rbind(mat.diff,this.box.diff)
+      mat.diff = bind_rows(mat.diff,this.box.diff)
       vars.actually.done = c(vars.actually.done,this.box)
       #cat("\n",this.box,"\t", this.box.diff)
     }

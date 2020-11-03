@@ -1,6 +1,6 @@
 Package: EpiSim
 Title: Build multi-compartment models via an Excel workbook
-Version: 0.12.6
+Version: 0.12.61
 Authors@R: 
     c(person(given = "Antoinette",
              family = "Ludwig",
